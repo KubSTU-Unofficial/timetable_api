@@ -82,3 +82,18 @@ export async function getGroupTimetable(req: Request, res: Response) {
 
     return res.json({ isok: true, data });
 }
+
+export async function getGroupExams(req: Request, res: Response) {
+    const { name } = req.params;
+    const { year, sem } = req.query;
+
+    if (!name) return res.json({ isok: false, msg: 'Где name?' });
+
+    let group = await Cache.getGroup(name.toString());
+
+    if (!group) return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы' });
+
+    let data = await group.getAndStoreExams();
+
+    return res.json({ isok: true, data });
+}
