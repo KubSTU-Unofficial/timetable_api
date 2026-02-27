@@ -59,7 +59,7 @@ export async function getGroupInfo(req: Request, res: Response) {
     let group = await Cache.getGroup(name.toString());
 
     if (!group) {
-        if (APIConvertor.isAPIWorks) {
+        if (!APIConvertor.isAPIWorks) {
             res.status(503);
             return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
         } else {
@@ -95,7 +95,7 @@ export async function getGroupTimetable(req: Request, res: Response) {
     let group = await Cache.getGroup(name.toString());
 
     if (!group) {
-        if (APIConvertor.isAPIWorks) {
+        if (!APIConvertor.isAPIWorks) {
             res.status(503);
             return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
         } else {
@@ -123,7 +123,7 @@ export async function getGroupExams(req: Request, res: Response) {
     let group = await Cache.getGroup(name.toString());
 
     if (!group) {
-        if (APIConvertor.isAPIWorks) {
+        if (!APIConvertor.isAPIWorks) {
             res.status(503);
             return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
         } else {
