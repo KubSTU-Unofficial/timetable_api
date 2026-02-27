@@ -4,6 +4,7 @@ import BaseOGroup from "../../shared/structures/OGroup.js";
 import BaseZGroup from "../../shared/structures/ZGroup.js";
 import { FoE } from "../../shared/lib/APIConvertor.js";
 import { LRUCache } from "lru-cache";
+import APIConvertor from "../../shared/lib/APIConvertor.js";
 
 
 // TODO: возможно стоит вынести в отдельную структуру
@@ -39,19 +40,35 @@ class Cache {
 export async function getGroupsList(_req: Request, res: Response) {
     let data = await Group.getAndStoreGroupsList();
 
+    if (!data) {
+        res.status(503);
+        return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
+    }
+
     res.json({ data, isok: true }); // TODO: добавить source
 }
 
 export async function getGroupInfo(req: Request, res: Response) {
     const { name } = req.params;
 
-    if (!name) return res.json({ isok: false, msg: 'Где name?' });
+    if (!name) {
+        res.status(400);
+        return res.json({ isok: false, msg: 'Где name?' });
+    }
 
     let group = await Cache.getGroup(name.toString());
 
-    if (!group) return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы' });
+    if (!group) {
+        if (APIConvertor.isAPIWorks) {
+            res.status(503);
+            return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
+        } else {
+            res.status(404)
+            return res.json({ isok: false, msg: 'Группа не найдена' });
+        }
+    }
 
-    let gi = await group.getGroupInfo();
+    let gi = await group.getAndStoreGroupInfo();
 
     let data = {
         fakId: group.instId,
@@ -70,11 +87,22 @@ export async function getGroupTimetable(req: Request, res: Response) {
     const { name } = req.params;
     const { year, sem } = req.query;
 
-    if (!name) return res.json({ isok: false, msg: 'Где name?' });
+    if (!name) {
+        res.status(400);
+        return res.json({ isok: false, msg: 'Где name?' });
+    }
 
     let group = await Cache.getGroup(name.toString());
 
-    if (!group) return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы' });
+    if (!group) {
+        if (APIConvertor.isAPIWorks) {
+            res.status(503);
+            return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
+        } else {
+            res.status(404)
+            return res.json({ isok: false, msg: 'Группа не найдена' });
+        }
+    }
 
     let data
     if (year && sem) data = await group.getTimetable({ year: +year, sem: +sem });
@@ -85,13 +113,24 @@ export async function getGroupTimetable(req: Request, res: Response) {
 
 export async function getGroupExams(req: Request, res: Response) {
     const { name } = req.params;
-    const { year, sem } = req.query;
+    // const { year, sem } = req.query;
 
-    if (!name) return res.json({ isok: false, msg: 'Где name?' });
+    if (!name) {
+        res.status(400);
+        return res.json({ isok: false, msg: 'Где name?' });
+    }
 
     let group = await Cache.getGroup(name.toString());
 
-    if (!group) return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы' });
+    if (!group) {
+        if (APIConvertor.isAPIWorks) {
+            res.status(503);
+            return res.json({ isok: false, msg: 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)' })
+        } else {
+            res.status(404)
+            return res.json({ isok: false, msg: 'Группа не найдена' });
+        }
+    }
 
     let data = await group.getAndStoreExams();
 
