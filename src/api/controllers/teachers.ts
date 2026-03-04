@@ -7,12 +7,22 @@ function error(res: Response, code: number, msg?: string) {
     return res.json({ isok: false, msg });
 }
 
-export async function getTeachersList(_req: Request, res: Response) {
-    let data = await BaseTeacher.getTeachersList();
+export async function getTeachersList(req: Request, res: Response) {
+    let searchString = req.query.search;
 
-    if (!data) return error(res, 503, 'Произошла ошибка во время получения группы (сервер ВУЗа недоступен)')
+    if (!searchString) {
+        let data = await BaseTeacher.getTeachersList();
 
-    res.json({ data, isok: true });
+        if (!data) return error(res, 503, 'Произошла ошибка во время получения списка преподавателей')
+
+        return res.json({ data, isok: true });
+    } else {
+        let data = await BaseTeacher.searchTeacher(searchString.toString());
+
+        if (!data.length) return error(res, 404, "Преподаватель не найден");
+
+        return res.json({ isok: true, data });
+    }
 }
 
 export async function getTeacherInfo(req: Request, res: Response) {
